@@ -108,7 +108,7 @@ const getNameservers = async (): Promise<string[]> => {
   switch (Deno.build.os) {
     case "linux": {
       const resolvconf = await Deno.readTextFile("/etc/resolv.conf");
-      const regex = /nameserver ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/g;
+      const regex = /nameserver ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[A-Z0-9:]+)/g;
       const results = resolvconf.matchAll(regex);
 
       servers = Array.from(
@@ -120,7 +120,7 @@ const getNameservers = async (): Promise<string[]> => {
     case "windows": {
       const cmdresult = nodeCmd.runSync("exit | nslookup");
       const address: string = cmdresult.data;
-      const regex = /Address:.*?([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/g;
+      const regex = /Address:.*?([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[A-Z0-9:]+)/g;
       const results = address.matchAll(regex);
 
       servers = Array.from(
