@@ -36,3 +36,4 @@ DNS rebinding attacks underscore the importance of keeping web browsers and netw
 **References**:
   - [DNS rebinding explained](https://www.gabriel.urdhr.fr/2021/06/02/dns-rebinding-explained)
   - [Singularity DNS rebinding attacks](https://github.com/nccgroup/singularity/wiki)
+  - [Singulary scan demo](http://rebind.it:8080/singularity.html)
