@@ -1,6 +1,5 @@
-// run with deno run --check -A check.ts
-
 import { writeAllSync } from "https://deno.land/std@0.201.0/streams/mod.ts";
+import nodeCmd from "npm:node-cmd@5";
 
 const domain = ".dns.tool.adele.im.";
 enum Align {
@@ -100,15 +99,43 @@ const realTimeOutput = (message: string): void => {
 
 /**
  * Read the /etc/resolv.conf content file
+ *
+ * @Returns - Return the nameserver list
  */
-const getNameserverFromResolvconf = async (): Promise<string[]> => {
-  const resolconf = await Deno.readTextFile("/etc/resolv.conf");
-  const regex = /nameserver ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/g;
-  const results = resolconf.matchAll(regex);
+const getNameservers = async (): Promise<string[]> => {
+  let servers: string[] = [];
 
-  const stringresults: string[] = Array.from(results, (results) => results[1]);
+  switch (Deno.build.os) {
+    case "linux": {
+      const resolvconf = await Deno.readTextFile("/etc/resolv.conf");
+      const regex = /nameserver ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/g;
+      const results = resolvconf.matchAll(regex);
 
-  return stringresults;
+      servers = Array.from(
+        results,
+        (results) => results[1],
+      );
+      break;
+    }
+    case "windows": {
+      const cmdresult = nodeCmd.runSync("exit | nslookup");
+      const address: string = cmdresult.data;
+      const regex = /Address:.*?([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/g;
+      const results = address.matchAll(regex);
+
+      servers = Array.from(
+        results,
+        (results) => results[1],
+      );
+
+      break;
+    }
+    default:
+      console.error(`${Deno.build.os} Operating System does not supported`);
+      Deno.exit(1);
+  }
+
+  return servers;
 };
 
 /**
@@ -145,7 +172,7 @@ const checkDnsEntry = async (entry: string): Promise<dnsResult> => {
 
 realTimeOutput("🔍 Check your DNS configuration ");
 
-const resolveConfIPs = await getNameserverFromResolvconf();
+const resolveConfIPs = await getNameservers();
 const pub = await checkDnsEntry("public".concat(domain));
 const noexists = await checkDnsEntry("noexists".concat(domain));
 const zero = await checkDnsEntry("zero.priv".concat(domain));
@@ -158,6 +185,7 @@ addToUIBuffer("", "");
 addToUIBuffer("Analysis results", "", "", Align.Center);
 addToUIBuffer("", "");
 
+addToUIBuffer("Your Operating System ", Deno.build.os);
 addToUIBuffer("Your local DNS resolver ", resolveConfIPs.join(","));
 addToUIBuffer(
   "Result for ".concat(pub.domain),

@@ -5,7 +5,11 @@
 This tool can be used to verify if your are protected from the DNS rebinding or if your USP block the RFC1918 private address resolution
 
 ```shell
+# Local
 deno run --check -A check.ts
+
+#Remote
+deno run --check -A https://raw.githubusercontent.com/badele/pokebowl/main/dns/dns-rebinding/check.ts
 ```
 ![dns-rebindind-screenshot](./dns-rebinding.png)
 
